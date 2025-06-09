@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.DianbiaoJiaofeiDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.dianbiao_id as dianbiaoId
+        ,a.dianbiao_jiaofei_money as dianbiaoJiaofeiMoney
+        ,a.insert_time as insertTime
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.DianbiaoJiaofeiView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,dianbiao.sushe_id as susheId
+        ,dianbiao.dianbiao_number as dianbiaoNumber
+        ,dianbiao.dianbiao_money as dianbiaoMoney
+
+        FROM dianbiao_jiaofei  a
+        left JOIN dianbiao dianbiao ON a.dianbiao_id = dianbiao.id
+        left JOIN sushe sushe ON dianbiao.sushe_id = sushe.id
+        left JOIN sushe_yonghu b ON sushe.id = b.sushe_id
+
+        <where>
+            <if test="params.dianbiaoId != null">
+                and a.dianbiao_id = #{params.dianbiaoId}
+            </if>
+            <if test="params.dianbiaoJiaofeiMoneyStart != null ">
+                <![CDATA[  and a.dianbiao_jiaofei_money >= #{params.dianbiaoJiaofeiMoneyStart}   ]]>
+            </if>
+            <if test="params.dianbiaoJiaofeiMoneyEnd != null ">
+                <![CDATA[  and a.dianbiao_jiaofei_money <= #{params.dianbiaoJiaofeiMoneyEnd}   ]]>
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+
+            <if test="params.susheId != null">
+                and dianbiao.sushe_id = #{params.susheId}
+            </if>
+            <if test=" params.dianbiaoNumber != '' and params.dianbiaoNumber != null and params.dianbiaoNumber != 'null' ">
+                and dianbiao.dianbiao_number like CONCAT('%',#{params.dianbiaoNumber},'%')
+            </if>
+            <if test="params.dianbiaoMoneyStart != null ">
+                <![CDATA[  and dianbiao.dianbiao_money >= #{params.dianbiaoMoneyStart}   ]]>
+            </if>
+            <if test="params.dianbiaoMoneyEnd != null ">
+                <![CDATA[  and dianbiao.dianbiao_money <= #{params.dianbiaoMoneyEnd}   ]]>
+            </if>
+
+            <if test="params.yonghuId != null">
+                and b.yonghu_id = #{params.yonghuId}
+            </if>
+        </where>
+        order by a.${params.orderBy} desc
+    </select>
+
+</mapper>
